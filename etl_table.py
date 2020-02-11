@@ -37,7 +37,7 @@ class ETLTable(object):
             TASKS, ITEMS, ARTIFACTS, ANSWERS,
         ]
 
-        self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r else None
+        self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r!='None' else None
     
     def load_to_staging_warehouse(self):
         db_info = self.conf.get_staging_db_info()
