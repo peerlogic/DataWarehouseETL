@@ -19,18 +19,6 @@ class ETLTable(object):
     def __init__(self, app_name, abbrev=None):
         self.app_name = app_name
         self.abbrev = abbrev if abbrev else self.app_name[:4]
-        self.conf = Conf()
-        self.TABLES = {
-            ACTOR_PARTICIPANTS: self.get_actor_pariticipants,
-            ACTORS: self.get_actors,
-            ANSWERS: self.get_answers,
-            ARTIFACTS: self.get_artifacts,
-            CRITERIA: self.get_criteria,
-            EVAL_MODES: self.get_eval_modes,
-            ITEMS: self.get_items,
-            PARTICIPANTS: self.get_participants,
-            TASKS: self.get_tasks,
-        }
         # TODO: It should be possible to grab this from the schema
         self.UPDATE_ORDER = [
             PARTICIPANTS, ACTORS, ACTOR_PARTICIPANTS, CRITERIA, EVAL_MODES,
