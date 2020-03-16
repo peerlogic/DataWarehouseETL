@@ -20,11 +20,6 @@ class ETLTable(object):
         self.app_name = app_name
         self.abbrev = abbrev if abbrev else self.app_name[:4]
         # TODO: It should be possible to grab this from the schema
-        self.UPDATE_ORDER = [
-            PARTICIPANTS, ACTORS, ACTOR_PARTICIPANTS, CRITERIA, EVAL_MODES,
-            TASKS, ITEMS, ARTIFACTS, ANSWERS,
-        ]
-
         self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r!='None' else None
 
     def get_actor_pariticipants(self):
