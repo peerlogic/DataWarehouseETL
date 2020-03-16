@@ -38,22 +38,6 @@ class ETLTable(object):
         ]
 
         self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r!='None' else None
-    
-    def load_to_staging_warehouse(self):
-        db_info = self.conf.get_staging_db_info()
-        connection = pymysql.connect(
-            host=db_info['host'], user=db_info['user'], 
-            password=db_info['passwd'], db=db_info['db'],
-        )
-        connection.cursor().execute('SET SQL_MODE=ANSI_QUOTES')
-        # TODO: ask Yang about peerlogic set up, why is there an error for duplicate
-        # entries in actor IDs, can't different roles share primary keys for IDs
-        for table in self.UPDATE_ORDER:
-            data = self.TABLES[table]()
-            if data:
-                print(f'Loading {table}...\n{self.TABLES[table]()}')
-                etl.todb(data, connection, table)
-        connection.close()
 
     def get_actor_pariticipants(self):
         return (
