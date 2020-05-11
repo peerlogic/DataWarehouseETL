@@ -2,27 +2,38 @@ import argparse
 import pymysql
 from peer_assess_pro import PeerAssessPro
 
-class LoadToStaging(object):
-    def __init__(self):
+ACTOR_PARTICIPANTS = 'actor_participants'
+ACTORS = 'actors'
+ANSWERS = 'answers'
+ARTIFACTS = 'artifacts'
+CRITERIA = 'criteria'
+EVAL_MODES = 'eval_modes'
+ITEMS = 'items'
+PARTICIPANTS = 'participants'
+TASKS = 'tasks'
+
+class LoadToDatabase(object):
+    def __init__(self, etl_table):
         self.conf = Conf()
+        self.etl_table = etl_table
         self.TABLES = {
-            ACTOR_PARTICIPANTS: self.get_actor_pariticipants,
-            ACTORS: self.get_actors,
-            ANSWERS: self.get_answers,
-            ARTIFACTS: self.get_artifacts,
-            CRITERIA: self.get_criteria,
-            EVAL_MODES: self.get_eval_modes,
-            ITEMS: self.get_items,
-            PARTICIPANTS: self.get_participants,
-            TASKS: self.get_tasks,
+            ACTOR_PARTICIPANTS: self.etl_table.get_actor_pariticipants,
+            ACTORS: self.etl_table.get_actors,
+            ANSWERS: self.etl_table.get_answers,
+            ARTIFACTS: self.etl_table.get_artifacts,
+            CRITERIA: self.etl_table.get_criteria,
+            EVAL_MODES: self.etl_table.get_eval_modes,
+            ITEMS: self.etl_table.get_items,
+            PARTICIPANTS: self.etl_table.get_participants,
+            TASKS: self.etl_table.get_tasks,
         }
         # TODO: It should be possible to grab this from the schema
         self.UPDATE_ORDER = [
-            PARTICIPANTS, ACTORS, ACTOR_PARTICIPANTS, CRITERIA, EVAL_MODES,
+            PARTICIPANTS, ACTORS, ACTOR_PARTICIPANTS, CRITERIA, EVAL_MODES,dffff
             TASKS, ITEMS, ARTIFACTS, ANSWERS,
         ]
-    def load_to_staging_warehouse(self):
-        db_info = self.conf.get_staging_db_info()
+
+    def load_to_warehouse(self, db_info):
         connection = pymysql.connect(
             host=db_info['host'], user=db_info['user'],
             password=db_info['passwd'], db=db_info['db'],
@@ -35,6 +46,20 @@ class LoadToStaging(object):
                 print(f'Loading {table}...\n{self.TABLES[table]()}')
                 etl.todb(data, connection, table)
         connection.close()
+
+class LoadToStaging(LoadToDatabase):
+    def __init__(self, etl_table):
+        super().__init__(self, etl_table)
+
+    def load_to_warehouse(self):
+        super().load_to_warehouse(self.conf.get_staging_db_info())
+
+class LoadToDatawarehouse(LoadToDatabase):
+    def __init__(self, etl_table):
+        super().__init__(self, etl_table)
+
+    def load_to_warehouse(self):
+        super().load_to_warehouse(self.conf.get_data_db_info())
 
 def arg_parse():
     parser = argparse.ArgumentParser(description='ETL Workflows')

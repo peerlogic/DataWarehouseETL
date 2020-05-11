@@ -2,16 +2,6 @@ import pymysql
 import petl as etl
 from conf import Conf
 
-ACTOR_PARTICIPANTS = 'actor_participants'
-ACTORS = 'actors'
-ANSWERS = 'answers'
-ARTIFACTS = 'artifacts'
-CRITERIA = 'criteria'
-EVAL_MODES = 'eval_modes'
-ITEMS = 'items'
-PARTICIPANTS = 'participants'
-TASKS = 'tasks'
-
 class ETLTable(object):
     # TODO: Fix error: pymysql.err.IntegrityError: (1451, 'Cannot delete or update a parent row: a foreign key constraint fails ("staging_warehouse"."actor_participants", CONSTRAINT "actor_participant_participant_id" FOREIGN KEY ("participant_id") REFERENCES "participants" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION)'
     # Cannot handle uploading old data, can handle that loading from staging to data warehouse
