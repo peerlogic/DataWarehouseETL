@@ -6,11 +6,8 @@ from etl_table import (
     ACTOR_PARTICIPANTS, ACTORS, ANSWERS, ARTIFACTS, CRITERIA, 
     EVAL_MODES, ITEMS, PARTICIPANTS, TASKS
 )
-<<<<<<< HEAD
 from conf import Conf
 import petl as etl
-=======
->>>>>>> 565e8f652689ad666e80c72326206f34f4ff085c
 
 class LoadToDatabase(object):
     def __init__(self, etl_table):
@@ -30,7 +27,6 @@ class LoadToDatabase(object):
         connection.cursor().execute('SET SQL_MODE=ANSI_QUOTES')
         for table in self.UPDATE_ORDER:
             data = self.etl_table.TABLES[table]()
-<<<<<<< HEAD
             print(f'Loading {table}...\n{data}')
             columns = ','.join(etl.header(data))
             values = ','.join(['%s']*len(etl.header(data)))
@@ -40,12 +36,6 @@ class LoadToDatabase(object):
             query = f"INSERT {table} ({columns}) VALUES ({values}) ON DUPLICATE KEY UPDATE {duplicate_updates};"
             print(query)
             connection.cursor().executemany(query, etl.records(data))
-=======
-            print(table)
-            if data:
-                print(f'Loading {table}...\n{self.TABLES[table]()}')
-                etl.todb(data, connection, table)
->>>>>>> 565e8f652689ad666e80c72326206f34f4ff085c
         connection.close()
 
 class LoadToStaging(LoadToDatabase):
