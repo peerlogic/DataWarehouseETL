@@ -12,7 +12,6 @@ class Sword(ETLTable):
             etl
             .fromcsv(f'{self._dirc}/all_users.csv', delimiter=',')
             .rename('user_id', 'id')
-            .select(lambda row: row.research == 'Y')
             .cut('id')
         )
 
@@ -20,7 +19,7 @@ class Sword(ETLTable):
         student_actors = (
             etl
             .fromcsv(f'{self._dirc}/all_users.csv', delimiter=',')
-            .select(lambda row: row.role == 'STUDENT' or row.role == 'BOTH')
+            .select(lambda row: row.role != 'TEACHER')
             .rename('user_id', 'id')
             .cut('id')
             .addcolumn('role', [], missing='student')
@@ -68,14 +67,13 @@ class Sword(ETLTable):
 
     def _get_criteria(self):
         # TODO: only has criteria titles and no IDs
-        criteria_ids = (
+        return (
             etl
             .fromcsv(f'{self._dirc}/rawCourseRatingsData_1.csv', delimiter=';')
             .cat(etl.fromcsv(f'{self._dirc}/rawCourseRatingsData_2.csv', delimiter=';'))
             .cut('Dimension ID')
             .rename('Dimension ID', 'id')
         )
-        return etl.fromcolumns(list(criteria_ids)) 
 
     def _get_answers(self):
         comments = (
@@ -83,12 +81,13 @@ class Sword(ETLTable):
             .fromcsv(f'{self._dirc}/assessment_result.csv', delimiter=',')
             .listoflists()
         )
+        return etl.empty()
 
     def _get_artifacts(self):
-        return etl.unpack([])
+        return etl.empty()
 
     def _get_eval_modes(self):
-        return etl.unpack([])
+        return etl.empty()
 
     def _get_items(self):
-        return etl.unpack([])
+        return etl.empty()

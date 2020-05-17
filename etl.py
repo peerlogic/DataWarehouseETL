@@ -2,35 +2,20 @@ import argparse
 import pymysql
 from peer_assess_pro import PeerAssessPro
 from sword import Sword
-
-ACTOR_PARTICIPANTS = 'actor_participants'
-ACTORS = 'actors'
-ANSWERS = 'answers'
-ARTIFACTS = 'artifacts'
-CRITERIA = 'criteria'
-EVAL_MODES = 'eval_modes'
-ITEMS = 'items'
-PARTICIPANTS = 'participants'
-TASKS = 'tasks'
+from etl_table import (
+    ACTOR_PARTICIPANTS, ACTORS, ANSWERS, ARTIFACTS, CRITERIA, 
+    EVAL_MODES, ITEMS, PARTICIPANTS, TASKS
+)
+from conf import Conf
+import petl as etl
 
 class LoadToDatabase(object):
     def __init__(self, etl_table):
         self.conf = Conf()
         self.etl_table = etl_table
-        self.TABLES = {
-            ACTOR_PARTICIPANTS: self.etl_table.get_actor_pariticipants,
-            ACTORS: self.etl_table.get_actors,
-            ANSWERS: self.etl_table.get_answers,
-            ARTIFACTS: self.etl_table.get_artifacts,
-            CRITERIA: self.etl_table.get_criteria,
-            EVAL_MODES: self.etl_table.get_eval_modes,
-            ITEMS: self.etl_table.get_items,
-            PARTICIPANTS: self.etl_table.get_participants,
-            TASKS: self.etl_table.get_tasks,
-        }
         # TODO: It should be possible to grab this from the schema
         self.UPDATE_ORDER = [
-            PARTICIPANTS, ACTORS, ACTOR_PARTICIPANTS, CRITERIA, EVAL_MODES,dffff
+            PARTICIPANTS, ACTORS, ACTOR_PARTICIPANTS, CRITERIA, EVAL_MODES,
             TASKS, ITEMS, ARTIFACTS, ANSWERS,
         ]
 
@@ -41,26 +26,31 @@ class LoadToDatabase(object):
         )
         connection.cursor().execute('SET SQL_MODE=ANSI_QUOTES')
         for table in self.UPDATE_ORDER:
-            data = self.TABLES[table]()
-            print(table)
-            if data:
-                print(f'Loading {table}...\n{self.TABLES[table]()}')
-                etl.todb(data, connection, table)
+            data = self.etl_table.TABLES[table]()
+            print(f'Loading {table}...\n{data}')
+            columns = ','.join(etl.header(data))
+            values = ','.join(['%s']*len(etl.header(data)))
+            duplicate_updates = ','.join(
+                [f'{column} = VALUES({column})' for column in etl.header(data)]
+            )
+            query = f"INSERT {table} ({columns}) VALUES ({values}) ON DUPLICATE KEY UPDATE {duplicate_updates};"
+            print(query)
+            connection.cursor().executemany(query, etl.records(data))
         connection.close()
 
 class LoadToStaging(LoadToDatabase):
     def __init__(self, etl_table):
-        super().__init__(self, etl_table)
+        super(LoadToStaging, self).__init__(etl_table)
 
     def load_to_warehouse(self):
-        super().load_to_warehouse(self.conf.get_staging_db_info())
+        super(LoadToStaging, self).load_to_warehouse(self.conf.get_staging_db_info())
 
 class LoadToDatawarehouse(LoadToDatabase):
     def __init__(self, etl_table):
-        super().__init__(self, etl_table)
+        super(LoadToDatawarehouse, self).__init__(etl_table)
 
     def load_to_warehouse(self):
-        super().load_to_warehouse(self.conf.get_data_db_info())
+        self.load_to_warehouse(self.conf.get_data_db_info())
 
 def arg_parse():
     parser = argparse.ArgumentParser(description='ETL Workflows')
@@ -70,10 +60,9 @@ def arg_parse():
     return parser
 
 def extract_and_load(dirc):
-    # sword = Sword(dirc)
-    # sword.load_to_staging_warehouse()
-    pap = PeerAssessPro(dirc)
-    pap.load_to_staging_warehouse()
+    sword = Sword(dirc)
+    # pap = PeerAssessPro(dirc)
+    LoadToStaging(sword).load_to_warehouse()
     
 
 if __name__ == '__main__':

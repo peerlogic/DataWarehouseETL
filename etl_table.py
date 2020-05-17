@@ -35,7 +35,7 @@ COLUMNS = {
 
 def _add_missing_columns(table, columns):
     for c in columns:
-        if c not in table.columns():
+        if c not in etl.header(table):
             table = table.addcolumn(c, [], missing=None)
     
     return table
@@ -49,6 +49,17 @@ class ETLTable(object):
         self.abbrev = abbrev if abbrev else self.app_name[:4]
         # TODO: It should be possible to grab this from the schema
         self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r!='None' else None
+        self.TABLES = {
+            ACTOR_PARTICIPANTS: self.get_actor_pariticipants,
+            ACTORS: self.get_actors,
+            ANSWERS: self.get_answers,
+            ARTIFACTS: self.get_artifacts,
+            CRITERIA: self.get_criteria,
+            EVAL_MODES: self.get_eval_modes,
+            ITEMS: self.get_items,
+            PARTICIPANTS: self.get_participants,
+            TASKS: self.get_tasks,
+        }
 
     def get_actor_pariticipants(self):
         return (
@@ -117,9 +128,10 @@ class ETLTable(object):
     def get_participants(self):
         return (
             _add_missing_columns(
-                self._get_participants(), COLUMNS[PARTICIPANTS]
+                self._get_participants().addcolumn(
+                    'app_name', [], missing=self.app_name
+                ), COLUMNS[PARTICIPANTS]
             )
-            .addcolumn('app_name', [], missing=self.app_name)
             .convert('id', str)
             .convert('app_name', str)
             .convert('id', self._convert_id)
