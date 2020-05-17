@@ -49,6 +49,17 @@ class ETLTable(object):
         self.abbrev = abbrev if abbrev else self.app_name[:4]
         # TODO: It should be possible to grab this from the schema
         self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r!='None' else None
+        self.TABLES = {
+            ACTOR_PARTICIPANTS: self.get_actor_pariticipants,
+            ACTORS: self.get_actors,
+            ANSWERS: self.get_answers,
+            ARTIFACTS: self.get_artifacts,
+            CRITERIA: self.get_criteria,
+            EVAL_MODES: self.get_eval_modes,
+            ITEMS: self.get_items,
+            PARTICIPANTS: self.get_participants,
+            TASKS: self.get_tasks,
+        }
 
     def get_actor_pariticipants(self):
         return (
