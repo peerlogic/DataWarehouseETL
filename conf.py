@@ -10,3 +10,6 @@ class Conf(object):
 
     def get_staging_db_info(self):
         return self.conf['staging_db']
+
+    def get_data_db_info(self):
+        return self.conf['warehouse_db']
