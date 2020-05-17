@@ -12,10 +12,38 @@ ITEMS = 'items'
 PARTICIPANTS = 'participants'
 TASKS = 'tasks'
 
+# TODO: We should be able to grab this information from the database instead of hardcoding
+COLUMNS = {
+    ACTOR_PARTICIPANTS: ['actor_id', 'participant_id'],
+    ACTORS: ['id', 'role'],
+    ANSWERS: [
+        'id', 'assessor_actor_id', 'assessee_actor_id', 'assessee_artifact_id', 
+        'criterion_id', 'evaluation_mode_id', 'comment', 'comment2', 'rank', 'score',
+        'create_in_task_id', 'submitted_at',
+    ],
+    CRITERIA: ['id', 'title', 'description', 'type', 'min_score', 'max_score', 'weight'],
+    EVAL_MODES: ['id', 'description'],
+    ITEMS: ['id', 'content', 'reference_id', 'type'],
+    PARTICIPANTS: ['id', 'app_name'],
+    TASKS: [
+        'id', 'task_type', 'task_description', 'starts_at', 'ends_at', 'assignment_title', 
+        'course_title', 'organization_title', 'owner_name', 'cip_level1_code', 
+        'cip_level2_code', 'cip_level3_code', 'app_name',
+    ],
+    ARTIFACTS: ['id', 'content', 'elaboration', 'submitted_in_task_id', 'context_case']
+}
+
+def _add_missing_columns(table, columns):
+    for c in columns:
+        if c not in table.columns():
+            table = table.addcolumn(c, [], missing=None)
+    
+    return table
+
 class ETLTable(object):
     # TODO: Fix error: pymysql.err.IntegrityError: (1451, 'Cannot delete or update a parent row: a foreign key constraint fails ("staging_warehouse"."actor_participants", CONSTRAINT "actor_participant_participant_id" FOREIGN KEY ("participant_id") REFERENCES "participants" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION)'
-    # Cannot handle uploading old data, can handle that loading from staging to data warehouse
-
+    # Cannot handle uploading old data, should force overwrite
+    
     def __init__(self, app_name, abbrev=None):
         self.app_name = app_name
         self.abbrev = abbrev if abbrev else self.app_name[:4]
@@ -42,22 +70,22 @@ class ETLTable(object):
     def load_to_staging_warehouse(self):
         db_info = self.conf.get_staging_db_info()
         connection = pymysql.connect(
-            host=db_info['host'], user=db_info['user'], 
+            host=db_info['host'], user=db_info['user'],
             password=db_info['passwd'], db=db_info['db'],
         )
         connection.cursor().execute('SET SQL_MODE=ANSI_QUOTES')
-        # TODO: ask Yang about peerlogic set up, why is there an error for duplicate
-        # entries in actor IDs, can't different roles share primary keys for IDs
         for table in self.UPDATE_ORDER:
             data = self.TABLES[table]()
             if data:
-                print(f'Loading {table}...\n{self.TABLES[table]()}')
-                etl.todb(data, connection, table)
+                print(f'Loading {table}...\n{data}')
+                # etl.todb(data, connection, table)
         connection.close()
 
     def get_actor_pariticipants(self):
         return (
-            self._get_actor_pariticipants()
+            _add_missing_columns(
+                self._get_actor_pariticipants(), COLUMNS[ACTOR_PARTICIPANTS]
+            ) 
             .convert('actor_id', str)
             .convert('participant_id', str)
             .convert('actor_id', self._convert_id)
@@ -66,7 +94,9 @@ class ETLTable(object):
     
     def get_actors(self):
         return (
-            self._get_actors()
+            _add_missing_columns(
+                self._get_actors(), COLUMNS[ACTORS]
+            )
             .convert('id', str)
             .convert('role', str)
             .convert('id', self._convert_id)
@@ -74,7 +104,9 @@ class ETLTable(object):
     
     def get_answers(self):
         return (
-            self._get_answers()
+            _add_missing_columns(
+                self._get_answers(), COLUMNS[ANSWERS]
+            )
             .convert('id', str)
             .convert('assessee_artifact_id', str)
             .convert('assessee_actor_id', str)
@@ -89,25 +121,35 @@ class ETLTable(object):
         )
     
     def get_artifacts(self):
-        return self._get_artifacts()
+        return _add_missing_columns(
+            self._get_artifacts(), COLUMNS[ARTIFACTS]
+        )
     
     def get_criteria(self):
         return (
-            self._get_criteria()
+            _add_missing_columns(
+                self._get_criteria(), COLUMNS[CRITERIA]
+            )
             .convert('id', str)
             .convert('title', str)
             .convert('id', self._convert_id)
         )
     
     def get_eval_modes(self):
-        return self._get_eval_modes()
+        return _add_missing_columns(
+            self._get_eval_modes(), COLUMNS[EVAL_MODES]
+        )
 
     def get_items(self):
-        return self._get_items()
+        return _add_missing_columns(
+            self._get_items(), COLUMNS[ITEMS]
+        )
     
     def get_participants(self):
         return (
-            self._get_participants()
+            _add_missing_columns(
+                self._get_participants(), COLUMNS[PARTICIPANTS]
+            )
             .addcolumn('app_name', [], missing=self.app_name)
             .convert('id', str)
             .convert('app_name', str)
@@ -115,7 +157,9 @@ class ETLTable(object):
         )
     
     def get_tasks(self):
-        return self._get_tasks()
+        return _add_missing_columns(
+            self._get_tasks(), COLUMNS[TASKS]
+        )
 
     def _get_actor_pariticipants(self):
         raise UnImplementedMethodError()

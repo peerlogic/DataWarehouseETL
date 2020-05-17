@@ -1,5 +1,6 @@
 import argparse
 from peer_assess_pro import PeerAssessPro
+from sword import Sword
 
 def arg_parse():
     parser = argparse.ArgumentParser(description='ETL Workflows')
@@ -9,6 +10,8 @@ def arg_parse():
     return parser
 
 def extract_and_load(dirc):
+    # sword = Sword(dirc)
+    # sword.load_to_staging_warehouse()
     pap = PeerAssessPro(dirc)
     pap.load_to_staging_warehouse()
     

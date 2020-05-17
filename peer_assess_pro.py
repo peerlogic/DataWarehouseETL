@@ -40,14 +40,14 @@ class PeerAssessPro(ETLTable):
             etl
             .fromcsv(f'{self._dirc}/student.csv', delimiter=';')
             .cut('id')
-            .addcolumn('role', [], missing='Student')
+            .addcolumn('role', [], missing='student')
         )
 
         teacher_actors = (
             etl
             .fromcsv(f'{self._dirc}/teacher.csv', delimiter=';')
             .cut('id')
-            .addcolumn('role', [], missing='Teacher')
+            .addcolumn('role', [], missing='instructor')
         )
 
         # team_user_actors = (
@@ -104,10 +104,11 @@ class PeerAssessPro(ETLTable):
     def _get_artifacts(self):
         # TODO: double check that this should be empty
         # TODO: see if there is any point in keeping teacher adv
-        return None
+        return etl.empty()
 
     def _get_criteria(self):
         # TODO: only has criteria titles and no IDs
+        # Peer Assess Pro has a single rubric, they plan to allow minimal variety later on
         return (
             etl
             .fromcolumns([
@@ -118,10 +119,10 @@ class PeerAssessPro(ETLTable):
         )
 
     def _get_eval_modes(self):
-        return None
+        return etl.empty()
 
     def _get_items(self):
-        return None
+        return etl.empty()
 
     def _get_participants(self):
         student_actors = (
@@ -138,7 +139,7 @@ class PeerAssessPro(ETLTable):
         return etl.cat(student_actors, teacher_actors)
 
     def _get_tasks(self):
-        return None
+        return etl.empty()
 
     def _get_imported_criteria_list(self):
         return list(
