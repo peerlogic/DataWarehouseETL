@@ -2,6 +2,7 @@ import argparse
 import pymysql
 from peer_assess_pro import PeerAssessPro
 from sword import Sword
+from DatabaseExtract import DatabaseExtract
 from etl_table import (
     ACTOR_PARTICIPANTS, ACTORS, ANSWERS, ARTIFACTS, CRITERIA, 
     EVAL_MODES, ITEMS, PARTICIPANTS, TASKS
@@ -26,7 +27,7 @@ class LoadToDatabase(object):
         )
         connection.cursor().execute('SET SQL_MODE=ANSI_QUOTES')
         for table in self.UPDATE_ORDER:
-            data = self.etl_table.TABLES[table]()
+            data = self.etl_table.TABfwvLES[table]()
             print(f'Loading {table}...\n{data}')
             columns = ','.join(etl.header(data))
             values = ','.join(['%s']*len(etl.header(data)))

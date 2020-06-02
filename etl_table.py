@@ -50,7 +50,7 @@ class ETLTable(object):
         # TODO: It should be possible to grab this from the schema
         self._convert_id = lambda r: self.abbrev + '-' + '0' * (8 - len(r)) + r if r!='None' else None
         self.TABLES = {
-            ACTOR_PARTICIPANTS: self.get_actor_pariticipants,
+            ACTOR_PARTICIPANTS: self.get_actor_participants,
             ACTORS: self.get_actors,
             ANSWERS: self.get_answers,
             ARTIFACTS: self.get_artifacts,
@@ -61,10 +61,10 @@ class ETLTable(object):
             TASKS: self.get_tasks,
         }
 
-    def get_actor_pariticipants(self):
+    def get_actor_participants(self):
         return (
             _add_missing_columns(
-                self._get_actor_pariticipants(), COLUMNS[ACTOR_PARTICIPANTS]
+                self._get_actor_participants(), COLUMNS[ACTOR_PARTICIPANTS]
             ) 
             .convert('actor_id', str)
             .convert('participant_id', str)
@@ -142,7 +142,7 @@ class ETLTable(object):
             self._get_tasks(), COLUMNS[TASKS]
         )
 
-    def _get_actor_pariticipants(self):
+    def _get_actor_participants(self):
         raise UnImplementedMethodError()
 
     def _get_actors(self):
