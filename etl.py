@@ -27,7 +27,7 @@ class LoadToDatabase(object):
         )
         connection.cursor().execute('SET SQL_MODE=ANSI_QUOTES')
         for table in self.UPDATE_ORDER:
-            data = self.etl_table.TABfwvLES[table]()
+            data = self.etl_table.TABLES[table]()
             print(f'Loading {table}...\n{data}')
             columns = ','.join(etl.header(data))
             values = ','.join(['%s']*len(etl.header(data)))
